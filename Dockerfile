@@ -3,6 +3,6 @@ WORKDIR /home
 COPY src src
 RUN cd src && go build -o ../vaultlink
 
-FROM alpine:1.13
+FROM alpine:3.10
 COPY --from=build /home/vaultlink vaultlink
 CMD ["./vaultlink"]
