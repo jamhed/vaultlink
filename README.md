@@ -4,7 +4,7 @@ On k8s namespace creation configures vault-kubernetes binding, and removes it on
 
 ## Usage
 
-Deploy `vaultlink`, make sure it can authorise and talk to vault, then:
+Deploy [vaultlink](https://hub.docker.com/r/jamhed/vaultlink), make sure it can authorise itself to vault, then:
 
 ```sh
 kubectl create namespace test
