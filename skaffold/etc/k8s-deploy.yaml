@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vaultlink
+  namespace: vaultlink
+  labels:
+    app: vaultlink
+spec:
+  containers:
+    - name: main
+      image: vaultlink
+      command: ["sh", "-c"]
+      args: ["vaultlink -verbose=debug -cluster=docker"]
+      env:
+        - name: VAULT_ADDR
+          value: ~
+        - name: VAULT_TOKEN
+          value: ~
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1000Mi
