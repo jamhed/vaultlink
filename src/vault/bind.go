@@ -38,6 +38,10 @@ func (v *Vault) makePolicyPathName(cluster, namespace, sa string) string {
 	return buf.String()
 }
 
+func (v *Vault) makeOktaGroupPath(group string) string {
+	return fmt.Sprintf("auth/okta/groups/%s", group)
+}
+
 func (v *Vault) Unbind(cluster, namespace, sa string) {
 	name := v.makeAuthName(cluster, namespace, sa)
 	log.Infof("Disabling auth path:%s", name)
@@ -53,7 +57,7 @@ func (v *Vault) Unbind(cluster, namespace, sa string) {
 	}
 }
 
-func (v *Vault) Bind(cluster, namespace, sa, kubeAddr string, token, ca []byte) *BindInfo {
+func (v *Vault) Bind(cluster, namespace, sa, kubeAddr, oktaGroup string, token, ca []byte) *BindInfo {
 	name := v.makeAuthName(cluster, namespace, sa)
 	log.Infof("Enabling auth path:%s", name)
 	err := v.api.Client().Sys().EnableAuthWithOptions(name, &api.EnableAuthOptions{Type: "kubernetes"})
@@ -96,5 +100,15 @@ capabilities = ["create", "read", "update", "delete", "list"]
 	if err != nil {
 		log.Errorf("Configuring policy:%s path:%s error:%s", policyName, policyPath, err)
 	}
+
+	oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
+	log.Infof("Configuring okta group mapping:%s", oktaGroupPath)
+	_, err = v.api.Client().Logical().Write(oktaGroupPath, VaultData{
+		"policies": []string{oktaGroup},
+	})
+	if err != nil {
+		log.Errorf("Configure auth role path:%s error:%s", rolePath, err)
+	}
+
 	return &BindInfo{name, policyName, policyPath}
 }

@@ -25,6 +25,17 @@ func ignoreErr(b []byte, err error) []byte {
 	return b
 }
 
+func getOktaGroup(ns *corev1.Namespace) string {
+	ann := ns.GetAnnotations()
+	if ann == nil {
+		return ""
+	}
+	if group, ok := ann["vault-link/group"]; ok {
+		return group
+	}
+	return ""
+}
+
 func (a *App) bindVault(ns *corev1.Namespace) {
 	namespace := ns.GetName()
 	saName := a.Args().ServiceAccount
@@ -35,12 +46,17 @@ func (a *App) bindVault(ns *corev1.Namespace) {
 	}
 	secret, err := a.ClientSet().CoreV1().Secrets(namespace).Get(sa.Secrets[0].Name, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("Get 1secret:%s namespace:%s %s", sa.Secrets[0].Name, namespace, err)
+		log.Errorf("Get secret:%s namespace:%s %s", sa.Secrets[0].Name, namespace, err)
 		return
 	}
-	info := a.Vault().Bind(a.Args().Cluster, namespace, sa.GetName(), a.Args().KubeAddr, secret.Data["token"], secret.Data["ca.crt"])
-	a.createReviewRole(namespace, sa.GetName())
-	a.setNs(ns, info)
+	group := getOktaGroup(ns)
+	if len(group) > 0 {
+		info := a.Vault().Bind(a.Args().Cluster, namespace, sa.GetName(), a.Args().KubeAddr, group, secret.Data["token"], secret.Data["ca.crt"])
+		a.createReviewRole(namespace, sa.GetName())
+		a.setNs(ns, info)
+	} else {
+		log.Errorf("No group annotation for namespace:%s", ns.Name)
+	}
 }
 
 func (a *App) unbindVault(ns *corev1.Namespace) {
