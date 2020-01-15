@@ -2,3 +2,5 @@
 /src/vaultlink
 /skaffold/k8s-deploy.yaml
 /skaffold/vaultlink
+/vaultlink.sublime-project
+/vaultlink.sublime-workspace
