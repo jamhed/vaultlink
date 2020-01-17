@@ -84,7 +84,7 @@ func (v *Vault) Bind(cluster, namespace, sa, kubeAddr, oktaGroup string, token, 
 		"bound_service_account_names":      sa,
 		"bound_service_account_namespaces": namespace,
 		"policies":                         policyName,
-		"token_num_uses":                   1,
+		"token_num_uses":                   0,
 		"token_ttl":                        "24h",
 	})
 	if err != nil {
