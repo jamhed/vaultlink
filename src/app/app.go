@@ -79,13 +79,11 @@ func (a *App) Control() {
 	informerFactory.Core().V1().Secrets().Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			if secret, ok := obj.(*corev1.Secret); ok {
-				log.Debugf("Event: create secret:%s namespace:%s", secret.GetName(), secret.GetNamespace())
 				a.onCreateSecret(secret)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			if secret, ok := obj.(*corev1.Secret); ok {
-				log.Debugf("Event: delete secret:%s namespace:%s", secret.GetName(), secret.GetNamespace())
 				a.onDeleteSecret(secret)
 			}
 		},
@@ -96,7 +94,6 @@ func (a *App) Control() {
 			if newNs, ok := new.(*corev1.Namespace); ok {
 				if oldNs, ok := old.(*corev1.Namespace); ok {
 					if newNs.GetResourceVersion() != oldNs.GetResourceVersion() {
-						log.Debugf("Event: update namespace:%s phase:%s", newNs.GetName(), newNs.Status.Phase)
 						if newNs.Status.Phase == "Active" {
 							a.onUpdateNamespace(oldNs, newNs)
 						}

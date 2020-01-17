@@ -51,8 +51,9 @@ func (a *App) bindVault(ns *corev1.Namespace) {
 	}
 	group := getOktaGroup(ns)
 	if len(group) > 0 {
-		info := a.Vault().Bind(a.Args().Cluster, namespace, sa.GetName(), a.Args().KubeAddr, group, secret.Data["token"], secret.Data["ca.crt"])
-		a.createReviewRole(namespace, sa.GetName())
+		info := a.Vault().Bind(a.Args().Cluster, namespace, saName, a.Args().KubeAddr, group, secret.Data["token"], secret.Data["ca.crt"])
+		a.createReviewRole(namespace, saName)
+		a.createClusterRoleBinding(namespace, sa.GetName())
 		a.setNs(ns, info)
 	} else {
 		log.Errorf("No group annotation for namespace:%s", ns.Name)
@@ -65,6 +66,7 @@ func (a *App) unbindVault(ns *corev1.Namespace) {
 	a.Vault().Unbind(a.Args().Cluster, namespace, saName)
 	a.deleteReviewRole(namespace, saName)
 	a.unsetNs(ns)
+	a.deleteClusterRoleBinding(namespace, saName)
 }
 
 func (a *App) setNs(ns *corev1.Namespace, info *vault.BindInfo) {
@@ -102,6 +104,34 @@ func (a *App) unsetNs(ns *corev1.Namespace) {
 	}
 }
 
+func (a *App) createClusterRoleBinding(namespace, saName string) error {
+	name := fmt.Sprintf("%s-%s-tokenreview-binding", namespace, saName)
+	client := a.ClientSet().RbacV1().ClusterRoleBindings()
+	crb := &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     "system:auth-delegator",
+		},
+		Subjects: []rbacv1.Subject{{
+			Kind:      "ServiceAccount",
+			Name:      saName,
+			Namespace: namespace,
+		}},
+	}
+	_, err := client.Create(crb)
+	return err
+}
+
+func (a *App) deleteClusterRoleBinding(namespace, saName string) error {
+	name := fmt.Sprintf("%s-%s-tokenreview-binding", namespace, saName)
+	return a.ClientSet().RbacV1().ClusterRoleBindings().Delete(name, &metav1.DeleteOptions{})
+}
+
 func (a *App) onCreateSecret(secret *corev1.Secret) {
 	namespace := secret.GetNamespace()
 	nsClient := a.ClientSet().CoreV1().Namespaces()
@@ -113,7 +143,6 @@ func (a *App) onCreateSecret(secret *corev1.Secret) {
 	ann := ensureMap(ns.GetAnnotations())
 	saName := ensureMap(secret.GetAnnotations())["kubernetes.io/service-account.name"]
 	if !(saName == a.Args().ServiceAccount && ann["vault-link/bind"] == "true") {
-		log.Debugf("Skip bind namespace:%s sa:%s annotation:%s", namespace, saName, ann["vault-link/bind"])
 		return
 	}
 	a.bindVault(ns)
