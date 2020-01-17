@@ -9,7 +9,7 @@ import (
 
 type Args struct {
 	VerboseLevel     string
-	KubeAuth         string
+	AuthPath         string
 	KubeTokenPath    string
 	VaultAddr        string
 	VaultToken       string
@@ -29,7 +29,7 @@ func New() *Args {
 
 func (a *Args) Parse() *Args {
 	flag.StringVar(&a.VerboseLevel, "verbose", "info", "Set verbosity level")
-	flag.StringVar(&a.KubeAuth, "kubeauth", "", "Authenticate with kubernetes, format: role@authengine")
+	flag.StringVar(&a.AuthPath, "authpath", "", "Authenticate with kubernetes, format: role@authengine")
 	flag.StringVar(&a.KubeTokenPath, "kubetokenpath", "/var/run/secrets/kubernetes.io/serviceaccount/token", "Kubernetes service account token path")
 	flag.StringVar(&a.VaultAddr, "addr", os.Getenv("VAULT_ADDR"), "Vault address")
 	flag.StringVar(&a.VaultToken, "token", "", "Vault token")

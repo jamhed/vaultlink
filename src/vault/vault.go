@@ -1,12 +1,13 @@
 package vault
 
 import (
-	"github.com/hashicorp/vault/api"
-	log "github.com/sirupsen/logrus"
 	"html/template"
 	"io/ioutil"
 	"os"
 	"regexp"
+
+	"github.com/hashicorp/vault/api"
+	log "github.com/sirupsen/logrus"
 )
 
 type VaultApiInterface interface {
@@ -92,7 +93,7 @@ func (v *Vault) Connect() *Vault {
 	return v
 }
 
-func parseKubeAuth(kubeAuth string) (role string, path string) {
+func parseAuthPath(kubeAuth string) (role string, path string) {
 	re := regexp.MustCompile(`^(.+?)@(.+)$`).FindStringSubmatch(kubeAuth)
 	if len(re) == 3 {
 		return re[1], re[2]
@@ -102,7 +103,7 @@ func parseKubeAuth(kubeAuth string) (role string, path string) {
 }
 
 func (v *Vault) KubeAuth(kubeTokenPath, kubeAuth string) string {
-	role, path := parseKubeAuth(kubeAuth)
+	role, path := parseAuthPath(kubeAuth)
 	jwt, err := ioutil.ReadFile(kubeTokenPath)
 	if err != nil {
 		log.Errorf("Can't read jwt token at %s", v.kubeTokenPath)
@@ -110,7 +111,7 @@ func (v *Vault) KubeAuth(kubeTokenPath, kubeAuth string) string {
 	}
 	re, err := v.api.Client().Logical().Write("auth/"+path+"/login", map[string]interface{}{"role": role, "jwt": string(jwt)})
 	if err != nil {
-		log.Errorf("Can't authenticate jwt token path:%s, role:%s, 1error:%s", path, role, err)
+		log.Errorf("Can't authenticate jwt token path:%s, role:%s, error:%s", path, role, err)
 		os.Exit(1)
 	}
 	return re.Auth.ClientToken

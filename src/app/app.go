@@ -50,8 +50,8 @@ func (a *App) Args() *args.Args {
 
 func (a *App) SetToken() *App {
 	var token string
-	if len(a.args.KubeAuth) > 0 {
-		token = a.vault.KubeAuth(a.args.KubeTokenPath, a.args.KubeAuth)
+	if len(a.args.AuthPath) > 0 {
+		token = a.vault.KubeAuth(a.args.KubeTokenPath, a.args.AuthPath)
 	} else {
 		token = a.args.VaultToken
 	}
