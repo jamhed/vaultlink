@@ -42,7 +42,7 @@ func (v *Vault) makeOktaGroupPath(group string) string {
 	return fmt.Sprintf("auth/okta/groups/%s", group)
 }
 
-func (v *Vault) Unbind(cluster, namespace, sa string) {
+func (v *Vault) Unbind(cluster, namespace, sa, oktaGroup string) {
 	name := v.makeAuthName(cluster, namespace, sa)
 	log.Infof("Disabling auth path:%s", name)
 	err := v.api.Client().Sys().DisableAuth(name)
@@ -54,6 +54,14 @@ func (v *Vault) Unbind(cluster, namespace, sa string) {
 	err = v.api.Client().Sys().DeletePolicy(policyName)
 	if err != nil {
 		log.Errorf("Delete policy:%s error:%s", policyName, err)
+	}
+	if len(oktaGroup) > 0 {
+		oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
+		log.Infof("Delete okta group policy mapping:%s", oktaGroupPath)
+		_, err = v.api.Client().Logical().Delete(oktaGroupPath)
+		if err != nil {
+			log.Errorf("Delete okta group policy:%s error:%s", oktaGroupPath, err)
+		}
 	}
 }
 

@@ -63,10 +63,11 @@ func (a *App) bindVault(ns *corev1.Namespace) {
 func (a *App) unbindVault(ns *corev1.Namespace) {
 	namespace := ns.GetName()
 	saName := a.Args().ServiceAccount
-	a.Vault().Unbind(a.Args().Cluster, namespace, saName)
+	group := getOktaGroup(ns)
+	a.Vault().Unbind(a.Args().Cluster, namespace, saName, group)
 	a.deleteReviewRole(namespace, saName)
-	a.unsetNs(ns)
 	a.deleteClusterRoleBinding(namespace, saName)
+	a.unsetNs(ns)
 }
 
 func (a *App) setNs(ns *corev1.Namespace, info *vault.BindInfo) {
