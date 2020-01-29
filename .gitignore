@@ -1,6 +1,6 @@
 /vaultlink
 /src/vaultlink
-/skaffold/k8s-deploy.yaml
-/skaffold/vaultlink
+/tele/vaultlink
 /vaultlink.sublime-project
 /vaultlink.sublime-workspace
+telepresence.log

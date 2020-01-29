@@ -12,7 +12,7 @@ var date string
 var builtBy string
 
 func main() {
-	fmt.Printf("vaultlink %s %s %s %s\n", version, commit, date, builtBy)
+	fmt.Printf("Vaultlink starting, version:%s commit:%s date:%s builtBy:%s\n", version, commit, date, builtBy)
 	app := app.New().Connect()
 	app.Control()
 }

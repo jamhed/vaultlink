@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    vault-link/bind: "true"
+    vault-link/group: prt-test
+  name: test

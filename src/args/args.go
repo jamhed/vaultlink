@@ -27,18 +27,25 @@ func New() *Args {
 	return new(Args).Parse()
 }
 
+func env(name, def string) string {
+	if value, ok := os.LookupEnv(name); ok {
+		return value
+	}
+	return def
+}
+
 func (a *Args) Parse() *Args {
-	flag.StringVar(&a.VerboseLevel, "verbose", "info", "Set verbosity level")
-	flag.StringVar(&a.AuthPath, "authpath", "", "Authenticate with kubernetes, format: role@authengine")
-	flag.StringVar(&a.KubeTokenPath, "kubetokenpath", "/var/run/secrets/kubernetes.io/serviceaccount/token", "Kubernetes service account token path")
-	flag.StringVar(&a.VaultAddr, "addr", os.Getenv("VAULT_ADDR"), "Vault address")
-	flag.StringVar(&a.VaultToken, "token", "", "Vault token")
-	flag.StringVar(&a.Cluster, "cluster", "", "Cluster name")
-	flag.StringVar(&a.ServiceAccount, "serviceaccount", "default", "Service account")
-	flag.StringVar(&a.KubeAddr, "kubeaddr", "", "Kubernetes api address")
-	flag.StringVar(&a.VaultPolicyT, "vaultpolicy", "k8s/{{ .Cluster }}/{{ .Namespace }}", "Vault policy name template")
-	flag.StringVar(&a.VaultPolicyPathT, "vaultpolicypath", "team/{{ .Namespace }}", "Vault policy path template")
-	flag.StringVar(&a.VaultAuthT, "vaultauth", "k8s/{{ .Cluster }}/{{ .Namespace }}", "Vault auth path template")
+	flag.StringVar(&a.VerboseLevel, "verbose", env("VERBOSE", "info"), "Set verbosity level")
+	flag.StringVar(&a.AuthPath, "authPath", env("AUTH_PATH", ""), "Authenticate with kubernetes, format: role@authengine")
+	flag.StringVar(&a.Cluster, "clusterName", env("CLUSTER_NAME", ""), "Cluster name")
+	flag.StringVar(&a.ServiceAccount, "serviceaccount", env("SERVICE_ACCOUNT", "default"), "Service account")
+	flag.StringVar(&a.KubeAddr, "kubeApiAddr", env("KUBE_API_ADDR", ""), "Kubernetes api address")
+	flag.StringVar(&a.KubeTokenPath, "kubeTokenPath", env("KUBE_TOKEN_PATH", "/var/run/secrets/kubernetes.io/serviceaccount/token"), "Kubernetes service account token path")
+	flag.StringVar(&a.VaultAddr, "vaultAddr", env("VAULT_ADDR", ""), "Vault address")
+	flag.StringVar(&a.VaultToken, "vaultToken", env("VAULT_TOKEN", ""), "Vault token")
+	flag.StringVar(&a.VaultPolicyT, "vaultPolicyName", env("VAULT_POLICY_NAME", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault policy name template")
+	flag.StringVar(&a.VaultPolicyPathT, "vaultSecretsPath", env("VAULT_SECRETS_PATH", "team/{{ .Namespace }}"), "Vault policy path template")
+	flag.StringVar(&a.VaultAuthT, "vaultAuth", env("VAULT_AUTH", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault auth path template")
 	flag.BoolVar(&a.Unwrap, "unwrap", false, "Unwrap token")
 	flag.Parse()
 	a.Args = flag.Args()

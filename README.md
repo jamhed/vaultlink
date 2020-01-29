@@ -31,13 +31,3 @@ and clean it up:
 ```sh
 kubectl annotate namespace test --overwrite vault-link/bind=false
 ```
-
-## Development
-
-In skaffold folder:
-
-Copy `etc/k8s-deploy.yaml` to skaffold root, provide `VAULT_TOKEN` (if required), have `skaffold` binary installed, and then:
-
-```sh
-skaffold dev
-```

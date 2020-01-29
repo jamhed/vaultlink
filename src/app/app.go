@@ -20,6 +20,7 @@ type App struct {
 	vault     *vault.Vault
 	args      *args.Args
 	clientset *kubernetes.Clientset
+	cache     map[string]bool
 }
 
 type AppInterface interface {
@@ -31,6 +32,7 @@ type AppInterface interface {
 func New() *App {
 	a := new(App)
 	a.args = args.New().LogLevel()
+	a.cache = make(map[string]bool)
 	a.vault = vault.New(a.Args().VaultAddr, a.Args().VaultPolicyT, a.Args().VaultPolicyPathT, a.Args().VaultAuthT).Connect()
 	a.SetToken()
 	return a
@@ -77,24 +79,24 @@ func (a *App) Connect() *App {
 func (a *App) Control() {
 	informerFactory := informers.NewSharedInformerFactory(a.ClientSet(), time.Second*30)
 
-	informerFactory.Core().V1().Secrets().Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			if secret, ok := obj.(*corev1.Secret); ok {
-				a.onCreateSecret(secret)
-			}
-		},
-		DeleteFunc: func(obj interface{}) {
-			if secret, ok := obj.(*corev1.Secret); ok {
-				a.onDeleteSecret(secret)
-			}
-		},
-	})
-
 	informerFactory.Core().V1().Namespaces().Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(ns interface{}) {
+			if Ns, ok := ns.(*corev1.Namespace); ok {
+				log.Debugf("Event: create %s", Ns.Name)
+				a.onCreateNamespace(Ns)
+			}
+		},
+		DeleteFunc: func(ns interface{}) {
+			if Ns, ok := ns.(*corev1.Namespace); ok {
+				log.Debugf("Event: delete %s", Ns.Name)
+				a.unbindVault(Ns)
+			}
+		},
 		UpdateFunc: func(old, new interface{}) {
 			if newNs, ok := new.(*corev1.Namespace); ok {
 				if oldNs, ok := old.(*corev1.Namespace); ok {
 					if newNs.GetResourceVersion() != oldNs.GetResourceVersion() {
+						log.Debugf("Event: update %s, phase:%s", newNs.Name, newNs.Status.Phase)
 						if newNs.Status.Phase == "Active" {
 							a.onUpdateNamespace(oldNs, newNs)
 						}
