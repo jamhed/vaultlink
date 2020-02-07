@@ -159,7 +159,7 @@ func (v *Vault) configureAlias(oktaGroup, policyName string) {
 		"canonical_id":   id,
 	})
 	if err != nil {
-		log.Errorf("Can't write group alias name:%s, accessor:%s, id:%s", oktaGroup, oidc.Accessor, id)
+		log.Errorf("Can't write group alias name:%s, accessor:%s, id:%s, error:%s", oktaGroup, oidc.Accessor, id, err)
 		return
 	}
 }
