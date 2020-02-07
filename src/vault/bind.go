@@ -62,6 +62,10 @@ func (v *Vault) Unbind(cluster, namespace, sa, oktaGroup string) {
 		if err != nil {
 			log.Errorf("Delete okta group policy:%s error:%s", oktaGroupPath, err)
 		}
+		_, err = v.api.Client().Logical().Delete(fmt.Sprintf("identity/group/name/%s", oktaGroup))
+		if err != nil {
+			log.Errorf("Delete okta group identity:%s error:%s", oktaGroup, err)
+		}
 	}
 }
 
@@ -110,7 +114,7 @@ capabilities = ["create", "read", "update", "delete", "list"]
 	}
 
 	oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
-	log.Infof("Configuring okta group mapping:%s", oktaGroupPath)
+	log.Infof("Configuring okta group mapping, group:%s, policy:%s", oktaGroupPath, policyName)
 	_, err = v.api.Client().Logical().Write(oktaGroupPath, VaultData{
 		"policies": []string{policyName},
 	})
@@ -118,5 +122,43 @@ capabilities = ["create", "read", "update", "delete", "list"]
 		log.Errorf("Configure auth role path:%s error:%s", rolePath, err)
 	}
 
+	v.configureAlias(oktaGroup, policyPath)
+
 	return &BindInfo{name, policyName, policyPath}
+}
+
+func (v *Vault) configureAlias(oktaGroup, policyName string) {
+	log.Infof("Configuring okta group alias:%s", oktaGroup)
+	group, err := v.api.Client().Logical().Write("identity/group", VaultData{
+		"name":     oktaGroup,
+		"type":     "external",
+		"policies": []string{policyName},
+	})
+	if err != nil {
+		log.Errorf("Can't write identity group:%s error:%s", oktaGroup, err)
+		return
+	}
+	id, ok := group.Data["id"].(string)
+	if !ok {
+		log.Errorf("Can't get okta group id, data:%s, id:%s", group.Data, id)
+		return
+	}
+	auth, err := v.api.Client().Sys().ListAuth()
+	if err != nil {
+		log.Errorf("Can't get auth list, error:%s", err)
+		return
+	}
+	oidc, ok := auth["oidc"]
+	if !ok {
+		log.Errorf("No OIDC accessor, error:%s", err)
+	}
+	_, err = v.api.Client().Logical().Write("identity/group-alias", VaultData{
+		"name":           oktaGroup,
+		"mount_accessor": oidc.Accessor,
+		"canonical_id":   id,
+	})
+	if err != nil {
+		log.Errorf("Can't write group alias name:%s, accessor:%s, id:%s", oktaGroup, oidc.Accessor, id)
+		return
+	}
 }
