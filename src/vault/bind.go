@@ -112,7 +112,7 @@ capabilities = ["create", "read", "update", "delete", "list"]
 	oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
 	log.Infof("Configuring okta group mapping:%s", oktaGroupPath)
 	_, err = v.api.Client().Logical().Write(oktaGroupPath, VaultData{
-		"policies": []string{policyPath},
+		"policies": []string{policyName},
 	})
 	if err != nil {
 		log.Errorf("Configure auth role path:%s error:%s", rolePath, err)
