@@ -57,7 +57,7 @@ func (v *Vault) Unbind(cluster, namespace, sa, oktaGroup string) {
 	}
 	if len(oktaGroup) > 0 {
 		oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
-		log.Infof("Delete okta group policy mapping:%s", oktaGroupPath)
+		log.Infof("Delete okta group policy and identity mapping:%s", oktaGroupPath)
 		_, err = v.api.Client().Logical().Delete(oktaGroupPath)
 		if err != nil {
 			log.Errorf("Delete okta group policy:%s error:%s", oktaGroupPath, err)
@@ -122,7 +122,7 @@ capabilities = ["create", "read", "update", "delete", "list"]
 		log.Errorf("Configure auth role path:%s error:%s", rolePath, err)
 	}
 
-	v.configureAlias(oktaGroup, policyPath)
+	v.configureAlias(oktaGroup, policyName)
 
 	return &BindInfo{name, policyName, policyPath}
 }
