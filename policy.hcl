@@ -10,3 +10,12 @@ path "sys/policies/acl/k8s/*" {
 path "auth/okta/groups/*" {
 	capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
+path "identity/*" {
+	capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+path "sys/auth" {
+	capabilities = ["read","list"]
+}
+path "sys/auth/*" {
+	capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}

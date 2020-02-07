@@ -148,9 +148,10 @@ func (v *Vault) configureAlias(oktaGroup, policyName string) {
 		log.Errorf("Can't get auth list, error:%s", err)
 		return
 	}
-	oidc, ok := auth["oidc"]
+	oidc, ok := auth["oidc/"]
 	if !ok {
 		log.Errorf("No OIDC accessor, error:%s", err)
+		return
 	}
 	_, err = v.api.Client().Logical().Write("identity/group-alias", VaultData{
 		"name":           oktaGroup,
