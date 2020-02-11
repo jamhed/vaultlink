@@ -33,7 +33,7 @@ func New() *App {
 	a := new(App)
 	a.args = args.New().LogLevel()
 	a.cache = make(map[string]bool)
-	a.vault = vault.New(a.Args().VaultAddr, a.Args().VaultPolicyT, a.Args().VaultPolicyPathT, a.Args().VaultAuthT).Connect()
+	a.vault = vault.New(a.Args().VaultAddr, a.Args().VaultPolicyT, a.Args().VaultSecretsPathT, a.Args().VaultAuthT).Connect()
 	a.SetToken()
 	return a
 }
