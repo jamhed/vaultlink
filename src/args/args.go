@@ -8,19 +8,19 @@ import (
 )
 
 type Args struct {
-	VerboseLevel     string
-	AuthPath         string
-	KubeTokenPath    string
-	VaultAddr        string
-	VaultToken       string
-	Cluster          string
-	ServiceAccount   string
-	KubeAddr         string
-	VaultPolicyT     string
-	VaultAuthT       string
-	VaultPolicyPathT string
-	Unwrap           bool
-	Args             []string
+	VerboseLevel      string
+	AuthPath          string
+	KubeTokenPath     string
+	VaultAddr         string
+	VaultToken        string
+	Cluster           string
+	ServiceAccount    string
+	KubeAddr          string
+	VaultPolicyT      string
+	VaultAuthT        string
+	VaultSecretsPathT string
+	Unwrap            bool
+	Args              []string
 }
 
 func New() *Args {
@@ -44,7 +44,7 @@ func (a *Args) Parse() *Args {
 	flag.StringVar(&a.VaultAddr, "vaultAddr", env("VAULT_ADDR", ""), "Vault address")
 	flag.StringVar(&a.VaultToken, "vaultToken", env("VAULT_TOKEN", ""), "Vault token")
 	flag.StringVar(&a.VaultPolicyT, "vaultPolicyName", env("VAULT_POLICY_NAME", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault policy name template")
-	flag.StringVar(&a.VaultPolicyPathT, "vaultSecretsPath", env("VAULT_SECRETS_PATH", "k8s/{{ .Cluster }}/{{ .Namespace }}/*"), "Vault policy path template")
+	flag.StringVar(&a.VaultSecretsPathT, "vaultSecretsPath", env("VAULT_SECRETS_PATH", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault secrets path template")
 	flag.StringVar(&a.VaultAuthT, "vaultAuth", env("VAULT_AUTH", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault auth path template")
 	flag.BoolVar(&a.Unwrap, "unwrap", false, "Unwrap token")
 	flag.Parse()

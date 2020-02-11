@@ -17,12 +17,12 @@ type VaultApiInterface interface {
 }
 
 type Vault struct {
-	api            VaultApiInterface
-	policyTmpl     *template.Template
-	policyPathTmpl *template.Template
-	authTmpl       *template.Template
-	addr           string
-	kubeTokenPath  string
+	api             VaultApiInterface
+	policyTmpl      *template.Template
+	secretsPathTmpl *template.Template
+	authTmpl        *template.Template
+	addr            string
+	kubeTokenPath   string
 }
 
 func (v *Vault) Addr() string {
@@ -35,7 +35,7 @@ func (v *Vault) KubeAddr() string {
 
 type VaultData map[string]interface{}
 
-func New(addr, policyTmpl, policyPathTmpl, authTmpl string) *Vault {
+func New(addr, policyTmpl, secretsPathTmpl, authTmpl string) *Vault {
 	v := new(Vault)
 	v.addr = addr
 	v.api = new(VaultApi)
@@ -49,11 +49,11 @@ func New(addr, policyTmpl, policyPathTmpl, authTmpl string) *Vault {
 		log.Fatalf("Auth template parser error:%s", err)
 	}
 	v.authTmpl = authT
-	policyPathT, err := template.New("policypath").Parse(policyPathTmpl)
+	secretsPathT, err := template.New("secretspath").Parse(secretsPathTmpl)
 	if err != nil {
 		log.Fatalf("Auth template parser error:%s", err)
 	}
-	v.policyPathTmpl = policyPathT
+	v.secretsPathTmpl = secretsPathT
 	return v
 }
 

@@ -32,9 +32,9 @@ func (v *Vault) makePolicyName(cluster, namespace, sa string) string {
 	return buf.String()
 }
 
-func (v *Vault) makePolicyPathName(cluster, namespace, sa string) string {
+func (v *Vault) makeSecretsPathName(cluster, namespace, sa string) string {
 	var buf bytes.Buffer
-	v.policyPathTmpl.Execute(&buf, Tmpl{cluster, namespace, sa})
+	v.secretsPathTmpl.Execute(&buf, Tmpl{cluster, namespace, sa})
 	return buf.String()
 }
 
@@ -103,14 +103,14 @@ func (v *Vault) Bind(cluster, namespace, sa, kubeAddr, oktaGroup string, token, 
 		log.Errorf("Configure auth role path:%s error:%s", rolePath, err)
 	}
 
-	policyPath := v.makePolicyPathName(cluster, namespace, sa)
-	log.Infof("Configuring policy:%s path:%s", policyName, policyPath)
-	policy := fmt.Sprintf(`path "%s" {
+	secretsPath := v.makeSecretsPathName(cluster, namespace, sa)
+	log.Infof("Configuring policy:%s secrets path:%s", policyName, secretsPath)
+	policy := fmt.Sprintf(`path "%s/*" {
 capabilities = ["create", "read", "update", "delete", "list"]
-}`, policyPath)
+}`, secretsPath)
 	err = v.api.Client().Sys().PutPolicy(policyName, policy)
 	if err != nil {
-		log.Errorf("Configuring policy:%s path:%s error:%s", policyName, policyPath, err)
+		log.Errorf("Configuring policy:%s path:%s error:%s", policyName, secretsPath, err)
 	}
 
 	oktaGroupPath := v.makeOktaGroupPath(oktaGroup)
@@ -124,7 +124,12 @@ capabilities = ["create", "read", "update", "delete", "list"]
 
 	v.configureAlias(oktaGroup, policyName)
 
-	return &BindInfo{name, policyName, policyPath}
+	err = v.api.Client().Sys().Mount(secretsPath, &api.MountInput{Type: "kv"})
+	if err != nil {
+		log.Warnf("Can't mount secrets engine for path:%s, error:%s", secretsPath, err)
+	}
+
+	return &BindInfo{name, policyName, secretsPath}
 }
 
 func (v *Vault) configureAlias(oktaGroup, policyName string) {
