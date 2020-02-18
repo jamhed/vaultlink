@@ -57,6 +57,11 @@ func New(addr, policyTmpl, secretsPathTmpl, authTmpl string) *Vault {
 	return v
 }
 
+func (v *Vault) Ping() error {
+	_, err := v.api.Client().Auth().Token().LookupSelf()
+	return err
+}
+
 func (v *Vault) SetToken(unwrap bool, vaultToken string) {
 	var token string
 	if len(vaultToken) > 0 {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"vaultlink/args"
+	"vaultlink/server"
 	"vaultlink/vault"
 
 	log "github.com/sirupsen/logrus"
@@ -20,6 +21,7 @@ type App struct {
 	vault     *vault.Vault
 	args      *args.Args
 	clientset *kubernetes.Clientset
+	server    *server.Server
 	cache     map[string]bool
 }
 
@@ -34,6 +36,7 @@ func New() *App {
 	a.args = args.New().LogLevel()
 	a.cache = make(map[string]bool)
 	a.vault = vault.New(a.Args().VaultAddr, a.Args().VaultPolicyT, a.Args().VaultSecretsPathT, a.Args().VaultAuthT).Connect()
+	a.server = server.New(a.vault, a.Args().Port)
 	a.SetToken()
 	return a
 }

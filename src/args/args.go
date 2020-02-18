@@ -21,6 +21,7 @@ type Args struct {
 	VaultSecretsPathT string
 	Unwrap            bool
 	Args              []string
+	Port              int
 }
 
 func New() *Args {
@@ -46,6 +47,7 @@ func (a *Args) Parse() *Args {
 	flag.StringVar(&a.VaultPolicyT, "vaultPolicyName", env("VAULT_POLICY_NAME", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault policy name template")
 	flag.StringVar(&a.VaultSecretsPathT, "vaultSecretsPath", env("VAULT_SECRETS_PATH", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault secrets path template")
 	flag.StringVar(&a.VaultAuthT, "vaultAuth", env("VAULT_AUTH", "k8s/{{ .Cluster }}/{{ .Namespace }}"), "Vault auth path template")
+	flag.IntVar(&a.Port, "port", 80, "Health server listen port")
 	flag.BoolVar(&a.Unwrap, "unwrap", false, "Unwrap token")
 	flag.Parse()
 	a.Args = flag.Args()
