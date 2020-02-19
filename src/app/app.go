@@ -37,6 +37,7 @@ func New() *App {
 	a.cache = make(map[string]bool)
 	a.vault = vault.New(a.Args().VaultAddr, a.Args().VaultPolicyT, a.Args().VaultSecretsPathT, a.Args().VaultAuthT).Connect()
 	a.server = server.New(a.vault, a.Args().Port)
+	go a.server.Listen()
 	a.SetToken()
 	return a
 }
