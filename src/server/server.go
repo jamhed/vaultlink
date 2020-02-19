@@ -27,7 +27,7 @@ func New(vault *vault.Vault, port int) *Server {
 
 func (srv *Server) Listen() {
 	go func() {
-		if err := srv.server.ListenAndServeTLS("", ""); err != nil {
+		if err := srv.server.ListenAndServe(); err != nil {
 			log.Errorf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
