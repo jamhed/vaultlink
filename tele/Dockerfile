@@ -1,4 +1,4 @@
-FROM registry.mckinsey.com/ppco/alpine:v1.0.4
+FROM alpine:latest
 
 ENV PATH=$PATH:/home/app
 
